@@ -1,6 +1,14 @@
 ---
 import { Icon, ThemeSwitch } from 'free-astro-components'
 import Hamburguer from './Hamburguer.astro'
+import Image from 'astro/components/Image.astro'
+
+// Obtener el tema actual del localStorage o del sistema
+export let currentTheme = 'light';
+if (typeof window !== 'undefined') {
+  currentTheme = localStorage.getItem('theme') || 
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
 ---
 
 <header
@@ -12,28 +20,60 @@ import Hamburguer from './Hamburguer.astro'
       href="/"
       aria-label="Free Astro components"
     >
-      <Icon icon="star" class="w-8 h-8" />
+      <!-- <Icon icon="star" class="w-8 h-8" /> -->
+      <div class="relative w-36 flex items-center justify-center" id="logo-container">
+        <Image 
+          src={currentTheme === 'dark' ? '/src/assets/logowhite.svg' : '/src/assets/logoblack.svg'}
+          alt="Free Astro components"
+          width={36}
+          height={36}
+          class="w-36 h-auto"
+          id="theme-logo"
+        />
+      </div>
+      
+      <script>
+        // Actualizar el logo cuando cambie el tema
+        const updateLogo = () => {
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || 
+                        (localStorage.getItem('theme') === 'dark') ||
+                        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          
+          const logo = document.getElementById('theme-logo');
+          if (logo) {
+            logo.src = isDark ? '/src/assets/logowhite.svg' : '/src/assets/logoblack.svg';
+          }
+        };
+
+        // Escuchar cambios en el tema
+        const observer = new MutationObserver(updateLogo);
+        observer.observe(document.documentElement, { 
+          attributes: true, 
+          attributeFilter: ['data-theme'] 
+        });
+
+        // Actualizar al cargar la página
+        document.addEventListener('DOMContentLoaded', updateLogo);
+      </script>
+
     </a>
 
     <nav>
-      <ul class="flex items-center gap-8">
-        <li>
+      <ul class="flex items-center justify-center gap-8 h-full">
+        <li class="flex items-center h-full">
           <a
-            class="text-sm hover:text-primary transition duration-300 ease-in-out"
-            href="/guide/installation">Documentation</a
-          >
+            class="text-sm hover:text-primary transition duration-300 ease-in-out flex items-center h-full"
+            href="/guide/installation">Documentation</a>
         </li>
-        <li class="hidden lg:block">
-          <a
-            class="text-sm hover:text-primary transition duration-300 ease-in-out"
-            href="/components/button">Components</a
-          >
+        <li class="flex items-center h-full">
+          <div class="flex items-center h-full">
+            <ThemeSwitch />
+          </div>
         </li>
-        <li>
-          <ThemeSwitch />
-        </li>
-        <li class="lg:hidden">
-          <Hamburguer />
+        <li class="lg:hidden flex items-center h-full">
+          <div class="flex items-center h-full">
+            <Hamburguer />
+          </div>
         </li>
       </ul>
     </nav>
